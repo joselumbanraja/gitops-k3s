@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: demo-app
-          image: ghcr.io/<username-github>/demo-app:latest
+          image: ghcr.io/joselumbanraja/demo-app:latest
           ports:
             - containerPort: 3000
           envFrom:
