@@ -1,0 +1,49 @@
+name: Update GitOps
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout App Repo
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/demo-app:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/demo-app:latest
+
+      - name: Checkout GitOps Repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/lab-gitops-k3s
+          token: ${{ secrets.GITOPS_TOKEN }}
+          path: gitops-repo
+
+      - name: Update Image Tag in GitOps Manifest
+        run: |
+          cd gitops-repo
+          sed -i "s|image: ghcr.io/${{ github.repository_owner }}/demo-app:.*|image: ghcr.io/${{ github.repository_owner }}/demo-app:${{ github.sha }}|" apps/demo-app/deployment.yaml
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add apps/demo-app/deployment.yaml
+          git commit -m "chore(demo-app): update image to ${{ github.sha }}"
+          git push
