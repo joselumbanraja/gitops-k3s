@@ -45,5 +45,6 @@ jobs:
           sed -i "s|image: ghcr.io/${{ github.repository_owner }}/demo-app:.*|image: ghcr.io/${{ github.repository_owner }}/demo-app:${{ github.sha }}|" apps/demo-app/deployment.yaml
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITOPS_TOKEN }}@github.com/${{ github.repository_owner }}/gitops-k3s.git
           git add apps/demo-app/deployment.yaml
-          git diff --cached --quiet || (git commit -m "chore(demo-app): update image to ${{ github.sha }}" && git push)
+          git diff --cached --quiet || (git commit -m "chore(demo-app): update image to ${{ github.sha }}" && git push origin HEAD:main)
