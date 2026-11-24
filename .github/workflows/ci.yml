@@ -1,4 +1,4 @@
-name: Update GitOps
+name: Update ci GitOps
 
 on:
   push:
